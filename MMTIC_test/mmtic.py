@@ -24,15 +24,15 @@ def weighted_score(response, is_positive):
             return 0
     else:  # 부정적 질문일 때
         if response == 1:  # 그렇다 (부정적)
-            return 0  # 반대 성향을 높임
+            return 0
         elif response == 2:  # 조금 그렇다 (부정적)
-            return 0.5  # 반대 성향을 높임
+            return 0.5  
         elif response == 3:  # 보통이다
-            return 1  # 중립
+            return 1 
         elif response == 4:  # 조금 아니다 (긍정적)
-            return 1.5  # 반대 성향을 높임
+            return 1.5 
         elif response == 5:  # 아니다 (긍정적)
-            return 2  # 반대 성향을 높임
+            return 2  
 
 
 def collect_responses():
@@ -56,12 +56,12 @@ def collect_responses():
             # 첫 번째 질문 (긍정적)
             if i < len(questions):
                 print(f"{i + 1}. {questions[i]}")
-                dimension_responses.append(get_response(True))  # 긍정적 질문
+                dimension_responses.append(get_response(True))  
 
             # 두 번째 질문 (부정적)
             if i + 1 < len(questions):
                 print(f"{i + 2}. {questions[i + 1]}")
-                dimension_responses.append(get_response(False))  # 부정적 질문
+                dimension_responses.append(get_response(False))  
 
         responses[dimension] = dimension_responses
     return responses
@@ -73,7 +73,7 @@ def get_response(is_positive):
         try:
             response = int(input("응답: "))
             if response in [1, 2, 3, 4, 5]:
-                return weighted_score(response, is_positive)  # 가중치 적용하여 반환
+                return weighted_score(response, is_positive) 
             else:
                 print("1에서 5 사이의 값을 입력하세요.")
         except ValueError:

@@ -1,0 +1,1 @@
+{"flutter":{"platforms":{"ios":{"default":{"projectId":"yonsei-gen-ai","appId":"1:724606814227:ios:ccde1cf89347ebb0e417e6","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"yonsei-gen-ai","configurations":{"ios":"1:724606814227:ios:ccde1cf89347ebb0e417e6"}}}}}}

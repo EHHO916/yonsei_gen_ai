@@ -1,7 +1,0 @@
-# .env 파일 무시
-.env
-
-# Django 불필요 파일 무시
-*.pyc
-__pycache__/
-db.sqlite3

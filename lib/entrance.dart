@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'mbti_test.dart';
+import 'mmtic_test.dart';
+import 'ecr_test.dart';
+import 'main.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class EntranceScreen extends StatefulWidget {
+  final GoogleSignInAccount? googleUser;
+
+  const EntranceScreen({Key? key, this.googleUser}) : super(key: key);
+
   @override
   _EntranceScreenState createState() => _EntranceScreenState();
 }
@@ -51,8 +59,19 @@ class _EntranceScreenState extends State<EntranceScreen> {
     if (_isValidMBTI()) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => MMTICCodeScreen()),
+        MaterialPageRoute(builder: (context) => MMTICCodeScreen(googleUser: widget.googleUser)),
       );
+    }
+  }
+
+  void _fillMBTIFields(String mbtiResult) {
+    if (mbtiResult.length == 4) {
+      setState(() {
+        _controller1.text = mbtiResult[0];
+        _controller2.text = mbtiResult[1];
+        _controller3.text = mbtiResult[2];
+        _controller4.text = mbtiResult[3];
+      });
     }
   }
 
@@ -74,9 +93,9 @@ class _EntranceScreenState extends State<EntranceScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Text('Enter MBTI code', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            const Text('부모의 MBTI code', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
-            Text('Enter your MBTI type using four letters, e.g., INFP', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey[600])),
+            Text('MBTI 검사는 개인의 성격 유형과 선호 경향을\n이해하는 데 도움을 주는 심리 검사입니다', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey[600])),
             const SizedBox(height: 30),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -91,7 +110,7 @@ class _EntranceScreenState extends State<EntranceScreen> {
             ElevatedButton(
               onPressed: _isValidMBTI() ? _onContinue : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: _isValidMBTI() ? Colors.purple : Colors.grey[300],
+                backgroundColor: _isValidMBTI() ? const Color(0xFF664FF6) : Colors.grey[300],
                 padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 80),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
@@ -101,15 +120,19 @@ class _EntranceScreenState extends State<EntranceScreen> {
             ),
             const SizedBox(height: 20),
             TextButton(
-              onPressed: () {
-                Navigator.push(
+              onPressed: () async {
+                final result = await Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => CombinedScreen()),
                 );
+
+                if (result != null && result is String) {
+                  _fillMBTIFields(result);
+                }
               },
               child: const Text(
                 '검사하기',
-                style: TextStyle(color: Colors.purple, fontSize: 16),
+                style: TextStyle(color: Color(0xFF664FF6), fontSize: 16),
               ),
             ),
           ],
@@ -133,7 +156,7 @@ class _EntranceScreenState extends State<EntranceScreen> {
             borderRadius: BorderRadius.circular(8),
           ),
           focusedBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Colors.purple, width: 2),
+            borderSide: const BorderSide(color: Color(0xFF664FF6), width: 2),
             borderRadius: BorderRadius.circular(8),
           ),
         ),
@@ -153,6 +176,10 @@ class _EntranceScreenState extends State<EntranceScreen> {
 }
 
 class MMTICCodeScreen extends StatefulWidget {
+  final GoogleSignInAccount? googleUser;
+
+  const MMTICCodeScreen({Key? key, this.googleUser}) : super(key: key);
+
   @override
   _MMTICCodeScreenState createState() => _MMTICCodeScreenState();
 }
@@ -166,7 +193,6 @@ class _MMTICCodeScreenState extends State<MMTICCodeScreen> {
   @override
   void initState() {
     super.initState();
-    // 각 컨트롤러에 리스너를 추가해 입력 값 변경 시 상태 업데이트
     _controller1.addListener(_updateButtonState);
     _controller2.addListener(_updateButtonState);
     _controller3.addListener(_updateButtonState);
@@ -183,7 +209,7 @@ class _MMTICCodeScreenState extends State<MMTICCodeScreen> {
   }
 
   void _updateButtonState() {
-    setState(() {}); // 버튼 상태 업데이트를 위해 setState 호출
+    setState(() {});
   }
 
   bool _isValidMMTIC() {
@@ -198,12 +224,23 @@ class _MMTICCodeScreenState extends State<MMTICCodeScreen> {
         (fourth == 'P' || fourth == 'J');
   }
 
-  // ##########################################################################
   void _onSubmitMMTIC() {
-    final mmticCode = _controller1.text + _controller2.text + _controller3.text + _controller4.text;
     if (_isValidMMTIC()) {
-      print("MMTIC 코드 입력 완료: $mmticCode");
-      // 다음 화면 또는 처리 작업으로 이동
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => GoalSelectionScreen(googleUser: widget.googleUser)),
+      );
+    }
+  }
+
+  void _fillMMTICFields(String mbtiResult) {
+    if (mbtiResult.length == 4) {
+      setState(() {
+        _controller1.text = mbtiResult[0];
+        _controller2.text = mbtiResult[1];
+        _controller3.text = mbtiResult[2];
+        _controller4.text = mbtiResult[3];
+      });
     }
   }
 
@@ -225,9 +262,9 @@ class _MMTICCodeScreenState extends State<MMTICCodeScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Text('Enter MMTIC code', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            const Text('자녀의 MMTIC code', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
-            Text('Enter your MMTIC code using four letters', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey[600])),
+            Text('MMTIC 검사는 어린이와 청소년의 성격 유형과\n학습 스타일을 이해하는 데 도움을 주는 심리 검사입니다', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey[600])),
             const SizedBox(height: 30),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -242,7 +279,7 @@ class _MMTICCodeScreenState extends State<MMTICCodeScreen> {
             ElevatedButton(
               onPressed: _isValidMMTIC() ? _onSubmitMMTIC : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: _isValidMMTIC() ? Colors.purple : Colors.grey[300],
+                backgroundColor: _isValidMMTIC() ? const Color(0xFF664FF6) : Colors.grey[300],
                 padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 80),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
@@ -250,18 +287,20 @@ class _MMTICCodeScreenState extends State<MMTICCodeScreen> {
               ),
               child: const Text('Continue', style: TextStyle(color: Colors.white)),
             ),
-            const SizedBox(height: 20),
             TextButton(
-              onPressed: () {
-                Navigator.push(
+              onPressed: () async {
+                final result = await Navigator.push(
                   context,
-                  // ###########################################################
-                  MaterialPageRoute(builder: (context) => CombinedScreen()), // 수정하기
+                  MaterialPageRoute(builder: (context) => CombinedScreen2()),
                 );
+
+                if (result != null && result is String) {
+                  _fillMMTICFields(result);
+                }
               },
               child: const Text(
                 '검사하기',
-                style: TextStyle(color: Colors.purple, fontSize: 16),
+                style: TextStyle(color: Color(0xFF664FF6), fontSize: 16),
               ),
             ),
           ],
@@ -285,7 +324,7 @@ class _MMTICCodeScreenState extends State<MMTICCodeScreen> {
             borderRadius: BorderRadius.circular(8),
           ),
           focusedBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Colors.purple, width: 2),
+            borderSide: const BorderSide(color: Color(0xFF664FF6), width: 2),
             borderRadius: BorderRadius.circular(8),
           ),
         ),
@@ -311,6 +350,159 @@ class UpperCaseTextFormatter extends TextInputFormatter {
     return TextEditingValue(
       text: newValue.text.toUpperCase(),
       selection: newValue.selection,
+    );
+  }
+}
+
+class GoalSelectionScreen extends StatefulWidget {
+  final GoogleSignInAccount? googleUser;
+
+  const GoalSelectionScreen({Key? key, this.googleUser}) : super(key: key);
+
+  @override
+  _GoalSelectionScreenState createState() => _GoalSelectionScreenState();
+}
+
+class _GoalSelectionScreenState extends State<GoalSelectionScreen> {
+  String? _selectedGoal;
+
+  void _onSelectGoal(String goal) {
+    setState(() {
+      _selectedGoal = goal;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(height: 140),
+                const Text(
+                  '애착유형검사',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  '애착유형 검사는 부모와 자녀 간 정서적 유대 형성을\n이해하는 데 도움을 주는 심리 검사입니다',
+                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 30),
+                _buildGoalOption(
+                  '안정 애착',
+                  isSelected: _selectedGoal == '안정 애착',
+                ),
+                const SizedBox(height: 16),
+                _buildGoalOption(
+                  '몰입 애착',
+                  isSelected: _selectedGoal == '몰입 애착',
+                ),
+                const SizedBox(height: 16),
+                _buildGoalOption(
+                  '거부형 회피 애착',
+                  isSelected: _selectedGoal == '거부형 회피 애착',
+                ),
+                const SizedBox(height: 16),
+                _buildGoalOption(
+                  '공포형(두려움) 회피 애착',
+                  isSelected: _selectedGoal == '공포형(두려움) 회피 애착',
+                ),
+                const SizedBox(height: 14),
+                TextButton(
+                  onPressed: () async {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => CombinedScreen3()),
+                    );
+
+                    if (result != null && result is String) {
+                      setState(() {
+                        _selectedGoal = result;
+                      });
+                    }
+                  },
+                  child: const Text(
+                    '검사하기',
+                    style: TextStyle(color: Color(0xFF664FF6), fontSize: 16),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Positioned(
+            bottom: 20,
+            left: 24,
+            right: 24,
+            child: Column(
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ChatScreen(googleUser: widget.googleUser),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6A4DFF),
+                    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 160),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  child: const Text(
+                    "검사 완료",
+                    style: TextStyle(
+                        color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGoalOption(String text, {required bool isSelected}) {
+    return GestureDetector(
+      onTap: () => _onSelectGoal(text),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.blue[100] : Colors.white,
+          border: Border.all(color: isSelected ? const Color(0xFF664FF6) : Colors.grey[300]!, width: 2),
+          borderRadius: BorderRadius.circular(30),
+        ),
+        child: Center(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 16,
+              color: isSelected ? const Color(0xFF664FF6) : Colors.black,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

@@ -6,6 +6,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:proto_type/entrance.dart';
 import 'firebase_options.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'diary.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,26 +29,23 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
+ // SignUp과 SignIn을 눌렀을 때 차이점을 부과해야함
 class StartScreen extends StatelessWidget {
   final GoogleSignIn _googleSignIn = GoogleSignIn();
-
   Future<void> _handleGoogleSignIn(BuildContext context, {bool isSignUp = false}) async {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser != null) {
         print('로그인 성공: ${googleUser.displayName}');
         if (isSignUp) {
-          // Sign Up 이후 MBTI 테스트로 이동
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => EntranceScreen()),
+            MaterialPageRoute(builder: (context) => EntranceScreen(googleUser: googleUser)),
           );
         } else {
-          // 일반 로그인 시 채팅 화면으로 이동
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => ChatScreen(googleUser: googleUser)),
+            MaterialPageRoute(builder: (context) => DiaryHome()),
           );
         }
       }
@@ -122,7 +120,7 @@ class StartScreen extends StatelessWidget {
 class ChatScreen extends StatefulWidget {
   final GoogleSignInAccount? googleUser;
 
-  ChatScreen({Key? key, this.googleUser}) : super(key: key);
+  const ChatScreen({Key? key, this.googleUser}) : super(key: key);
 
   @override
   _ChatScreenState createState() => _ChatScreenState();
@@ -132,7 +130,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final ScrollController _textFieldScrollController = ScrollController();
-  List<Map<String, String>> _messages = [];
+  final List<Map<String, String>> _messages = [];
   String _typingMessage = '';
 
   Future<void> _sendMessage(String text) async {
@@ -260,8 +258,8 @@ class _ChatScreenState extends State<ChatScreen> {
                             radius: 30,
                           )
                               : const CircleAvatar(
-                            child: Icon(Icons.person),
                             radius: 30,
+                            child: Icon(Icons.person),
                           ),
                           const SizedBox(width: 16),
                           Column(
@@ -287,30 +285,29 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                         ],
                       ),
-                      // [수정 사항] 우측 상단의 점 세 개 아이콘 버튼 추가
                       IconButton(
-                        icon: Icon(Icons.more_vert),
+                        icon: const Icon(Icons.more_vert),
                         onPressed: () async {
                           final shouldLogout = await showDialog<bool>(
                             context: context,
                             builder: (context) => AlertDialog(
-                              title: Text('로그아웃'),
-                              content: Text('정말 로그아웃 하시겠습니까?'),
+                              backgroundColor: Colors.white,
+                              title: const Text('로그아웃'),
+                              content: const Text('정말 로그아웃 하시겠습니까?'),
                               actions: [
                                 TextButton(
                                   onPressed: () => Navigator.pop(context, false),
-                                  child: Text('취소'),
+                                  child: const Text('취소', style: TextStyle(color: Colors.grey)),
                                 ),
                                 TextButton(
                                   onPressed: () => Navigator.pop(context, true),
-                                  child: Text('로그아웃'),
+                                  child: const Text('로그아웃', style: TextStyle(color: Colors.black)),
                                 ),
                               ],
                             ),
                           );
 
                           if (shouldLogout == true) {
-                            // 로그아웃 기능 수행 및 StartScreen으로 이동
                             await GoogleSignIn().signOut();
                             Navigator.pushAndRemoveUntil(
                               context,
@@ -379,7 +376,6 @@ class _ChatScreenState extends State<ChatScreen> {
                   padding: const EdgeInsets.only(right: 8.0),
                   itemCount: _typingMessage.isNotEmpty ? _messages.length + 1 : _messages.length,
                   itemBuilder: (context, index) {
-                    // 타이핑 효과를 위해 임시로 표시되는 마지막 메시지
                     if (index == _messages.length && _typingMessage.isNotEmpty) {
                       return Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -399,7 +395,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
                               constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: Colors.grey[400],
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
@@ -419,7 +415,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (!isUser) // API 응답 메시지일 때만 아이콘 표시
+                        if (!isUser)
                           Padding(
                             padding: const EdgeInsets.only(left: 8.0, top: 13.0),
                             child: Image.asset(
@@ -428,14 +424,14 @@ class _ChatScreenState extends State<ChatScreen> {
                               height: 32,
                             ),
                           ),
-                        if (!isUser) const SizedBox(width: 8), // API 메시지의 아이콘과 텍스트 사이 간격
+                        if (!isUser) const SizedBox(width: 8),
                         Flexible(
                           child: Container(
                             padding: const EdgeInsets.all(12),
                             margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
                             constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
                             decoration: BoxDecoration(
-                              color: isUser ? const Color(0xFF6A4DFF) : Colors.white,
+                              color: isUser ? const Color(0xFF664FF6) : Colors.white,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
@@ -455,7 +451,7 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
             Container(
               color: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
+              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
               child: SafeArea(
                 child: Row(
                   children: [
@@ -463,7 +459,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       child: SingleChildScrollView(
                         controller: _textFieldScrollController,
                         scrollDirection: Axis.vertical,
-                        reverse: true, // 스크롤이 아래쪽부터 시작하도록 설정
+                        reverse: true,
                         child: TextFormField(
                           controller: _controller,
                           decoration: const InputDecoration(

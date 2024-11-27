@@ -2,17 +2,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:proto_type/entrance.dart';
-import 'firebase_options.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'diary.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
   await dotenv.load();
   runApp(MyApp());
 }
@@ -24,6 +19,7 @@ class MyApp extends StatelessWidget {
       title: 'ParentCare',
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        fontFamily: 'noto',
       ),
       home: StartScreen(),
     );
@@ -227,7 +223,7 @@ class _ChatScreenState extends State<ChatScreen> {
           style: TextStyle(color: Colors.black),
         ),
         backgroundColor: Colors.white,
-        elevation: 1,
+        elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
         actions: [
           IconButton(
@@ -235,6 +231,13 @@ class _ChatScreenState extends State<ChatScreen> {
             onPressed: _resetChat,
           ),
         ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0), // 경계선의 높이
+          child: Container(
+            color: Colors.grey, // 경계선 색상
+            height: 1.0, // 경계선 두께
+          ),
+        ),
       ),
       drawer: Container(
         width: MediaQuery.of(context).size.width * 0.8,
@@ -351,20 +354,7 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       ),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.white,
-              Colors.white,
-              Color(0xFFF8E1E7),
-              Color(0xFFD1C4E9),
-              Color(0xFFE8EAF6),
-            ],
-            stops: [0.0, 0.5, 0.65, 0.8, 0.9],
-          ),
-        ),
+        color: const Color(0xfff6f6f6),
         child: Column(
           children: [
             Expanded(
@@ -383,7 +373,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           Padding(
                             padding: const EdgeInsets.only(left: 8.0, top: 13.0),
                             child: Image.asset(
-                              'assets/images/icon.png',
+                              'assets/images/chaticon.png',
                               width: 32,
                               height: 32,
                             ),
@@ -395,8 +385,8 @@ class _ChatScreenState extends State<ChatScreen> {
                               margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
                               constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
                               decoration: BoxDecoration(
-                                color: Colors.grey[400],
-                                borderRadius: BorderRadius.circular(8),
+                                color: Colors.grey[300],
+                                borderRadius: BorderRadius.circular(15),
                               ),
                               child: Text(
                                 _typingMessage,
@@ -419,7 +409,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           Padding(
                             padding: const EdgeInsets.only(left: 8.0, top: 13.0),
                             child: Image.asset(
-                              'assets/images/icon.png',
+                              'assets/images/chaticon.png',
                               width: 32,
                               height: 32,
                             ),
@@ -432,7 +422,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
                             decoration: BoxDecoration(
                               color: isUser ? const Color(0xFF664FF6) : Colors.white,
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(15),
                             ),
                             child: Text(
                               message['text'] ?? '',
@@ -450,7 +440,15 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
             ),
             Container(
-              color: Colors.white,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border(
+                  top: BorderSide(
+                    color: Colors.grey[300] ?? Colors.grey, // null 안전 처리
+                    width: 1.0,
+                  ),
+                ),
+              ),
               padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
               child: SafeArea(
                 child: Row(

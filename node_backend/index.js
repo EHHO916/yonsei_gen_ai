@@ -3,11 +3,12 @@ const connectDB = require('./db');
 const dotenv = require('dotenv');
 const cors = require('cors'); // CORS 에러 방지를 위한 미들웨어, 터미널에 npm install cors 하셈
 const morgan = require('morgan'); // 로깅 미들웨어
+const userRoutes = require('./routes/userRoutes');
 
 dotenv.config({ path: './node_backend/.env' });
 
 const app = express();
-const PORT = process.env.NODE_PORT || 3000;
+const PORT = process.env.NODE_PORT || 5000;
 
 // MongoDB 연결
 connectDB();
@@ -16,6 +17,17 @@ connectDB();
 app.use(cors()); // 클라이언트와의 Cross-Origin 문제 해결, npm install cors 꼬옥 하기~~!!
 app.use(express.json()); // JSON 요청을 처리하기 위한 미들웨어
 app.use(morgan('dev')); // 요청 및 응답 로깅
+app.use(express.urlencoded({ extended: true }));
+
+// Debug middleware to log all incoming requests
+app.use((req, res, next) => {
+  console.log('Incoming request:', {
+    method: req.method,
+    path: req.path,
+    body: req.body
+  });
+  next();
+});
 
 // 기본 라우트
 app.get('/', (req, res) => {
@@ -26,6 +38,7 @@ app.get('/', (req, res) => {
 app.use('/api/diary', require('./routes/diaryRoutes'));
 app.use('/api/todo', require('./routes/todoRoutes'));
 app.use('/api/chat', require('./routes/chatRoutes'));
+app.use('/api/users', userRoutes);
 
 // 404 처리 (라우트 없음)
 app.use((req, res, next) => {

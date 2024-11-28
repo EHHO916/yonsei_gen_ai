@@ -45,4 +45,10 @@ router.delete('/delete/:id', async (req, res) => {
   }
 });
 
+// Add error handling middleware
+router.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something went wrong!' });
+});
+
 module.exports = router;

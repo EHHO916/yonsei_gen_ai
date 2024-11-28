@@ -93,9 +93,9 @@ class _EntranceScreenState extends State<EntranceScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Text('Enter MBTI code', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            const Text('MBTI를 입력해주세요', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
-            Text('Enter your MBTI type using four letters, e.g., INFP', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey[600])),
+            Text('개인의 성격 유형을 16가지로 분류하여\n자기 이해와 대인관계 개선에 도움을 주는 성격 유형 검사', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey[600])),
             const SizedBox(height: 30),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -262,9 +262,9 @@ class _MMTICCodeScreenState extends State<MMTICCodeScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Text('Enter MMTIC code', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            const Text('MMTIC를 입력해주세요', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
-            Text('Enter your MMTIC code using four letters', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey[600])),
+            Text('아동 및 청소년의 성격 유형을 분석하여\n학습 스타일과 대인관계 특성을 이해하도록 돕는 성격 유형 검사', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey[600])),
             const SizedBox(height: 30),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -391,13 +391,13 @@ class _GoalSelectionScreenState extends State<GoalSelectionScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const Text(
-              '애착유형검사',
+              '애착 유형을 선택해주세요',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
             Text(
-              'We will recommend diets and exercises that suit you',
+              '부모와 자녀의 애착 유형과 상호작용 패턴을 분석하여\n건강한 양육 및 관계 개선에 도움을 주는 심리 검사',
               style: TextStyle(fontSize: 16, color: Colors.grey[600]),
               textAlign: TextAlign.center,
             ),
@@ -433,9 +433,9 @@ class _GoalSelectionScreenState extends State<GoalSelectionScreen> {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF6A4DFF),
-                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 80),
+                padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 159),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
+                  borderRadius: BorderRadius.circular(20),
                 ),
               ),
               child: const Text(

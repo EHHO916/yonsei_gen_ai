@@ -10,7 +10,7 @@ class CombinedScreen3 extends StatelessWidget {
         elevation: 0,
         centerTitle: true,
         title: const Text(
-          'ECR TEST',
+          'ECR 검사',
           style: TextStyle(
             color: Color(0xFF090A0A),
             fontSize: 32,
@@ -20,20 +20,13 @@ class CombinedScreen3 extends StatelessWidget {
       ),
       body: Stack(
         children: [
+          // 배경 이미지 추가
           Positioned.fill(
             child: Container(
               decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.white,
-                    Colors.white,
-                    Color(0xFFF8E1E7),
-                    Color(0xFFD1C4E9),
-                    Color(0xFFE8EAF6),
-                  ],
-                  stops: [0.0, 0.5, 0.75, 0.9, 1.0],
+                image: DecorationImage(
+                  image: AssetImage('assets/images/background.png'), // 그림 파일 경로
+                  fit: BoxFit.cover, // 화면에 맞게 그림 크기 조정
                 ),
               ),
             ),

@@ -2,16 +2,14 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:proto_type/entrance.dart';
-import 'firebase_options.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'diary.dart';
+import 'package:mongo_dart/mongo_dart.dart' as mongo;
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
   await dotenv.load();
   runApp(MyApp());
 }
@@ -23,12 +21,13 @@ class MyApp extends StatelessWidget {
       title: 'ParentCare',
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        fontFamily: 'noto',
       ),
       home: StartScreen(),
     );
   }
 }
- // SignUp과 SignIn을 눌렀을 때 차이점을 부과해야함
+// SignUp과 SignIn을 눌렀을 때 차이점을 부과해야함
 class StartScreen extends StatelessWidget {
   final GoogleSignIn _googleSignIn = GoogleSignIn();
   Future<void> _handleGoogleSignIn(BuildContext context, {bool isSignUp = false}) async {
@@ -44,7 +43,7 @@ class StartScreen extends StatelessWidget {
         } else {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => ChatScreen(googleUser: googleUser)),
+            MaterialPageRoute(builder: (context) => DiaryHome()),
           );
         }
       }
@@ -130,7 +129,11 @@ class _ChatScreenState extends State<ChatScreen> {
   final ScrollController _scrollController = ScrollController();
   final ScrollController _textFieldScrollController = ScrollController();
   final List<Map<String, String>> _messages = [];
+  final List<String> _chatHistory = [];
   String _typingMessage = '';
+  late mongo.Db _db;
+  late mongo.DbCollection _collection;
+
 
   Future<void> _sendMessage(String text) async {
     setState(() {
@@ -226,14 +229,26 @@ class _ChatScreenState extends State<ChatScreen> {
           style: TextStyle(color: Colors.black),
         ),
         backgroundColor: Colors.white,
-        elevation: 1,
+        elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _resetChat,
+            icon: const Icon(Icons.calendar_today),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => DiaryHome()), // Diary 화면으로 전환
+              );
+            },
           ),
         ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0), // 경계선의 높이
+          child: Container(
+            color: Colors.grey, // 경계선 색상
+            height: 1.0, // 경계선 두께
+          ),
+        ),
       ),
       drawer: Container(
         width: MediaQuery.of(context).size.width * 0.8,
@@ -284,30 +299,29 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                         ],
                       ),
-                      // [수정 사항] 우측 상단의 점 세 개 아이콘 버튼 추가
                       IconButton(
                         icon: const Icon(Icons.more_vert),
                         onPressed: () async {
                           final shouldLogout = await showDialog<bool>(
                             context: context,
                             builder: (context) => AlertDialog(
+                              backgroundColor: Colors.white,
                               title: const Text('로그아웃'),
                               content: const Text('정말 로그아웃 하시겠습니까?'),
                               actions: [
                                 TextButton(
                                   onPressed: () => Navigator.pop(context, false),
-                                  child: const Text('취소'),
+                                  child: const Text('취소', style: TextStyle(color: Colors.grey)),
                                 ),
                                 TextButton(
                                   onPressed: () => Navigator.pop(context, true),
-                                  child: const Text('로그아웃'),
+                                  child: const Text('로그아웃', style: TextStyle(color: Colors.black)),
                                 ),
                               ],
                             ),
                           );
 
                           if (shouldLogout == true) {
-                            // 로그아웃 기능 수행 및 StartScreen으로 이동
                             await GoogleSignIn().signOut();
                             Navigator.pushAndRemoveUntil(
                               context,
@@ -351,20 +365,7 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       ),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.white,
-              Colors.white,
-              Color(0xFFF8E1E7),
-              Color(0xFFD1C4E9),
-              Color(0xFFE8EAF6),
-            ],
-            stops: [0.0, 0.5, 0.65, 0.8, 0.9],
-          ),
-        ),
+        color: const Color(0xfff6f6f6),
         child: Column(
           children: [
             Expanded(
@@ -376,7 +377,6 @@ class _ChatScreenState extends State<ChatScreen> {
                   padding: const EdgeInsets.only(right: 8.0),
                   itemCount: _typingMessage.isNotEmpty ? _messages.length + 1 : _messages.length,
                   itemBuilder: (context, index) {
-                    // 타이핑 효과를 위해 임시로 표시되는 마지막 메시지
                     if (index == _messages.length && _typingMessage.isNotEmpty) {
                       return Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -384,7 +384,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           Padding(
                             padding: const EdgeInsets.only(left: 8.0, top: 13.0),
                             child: Image.asset(
-                              'assets/images/icon.png',
+                              'assets/images/chaticon.png',
                               width: 32,
                               height: 32,
                             ),
@@ -396,8 +396,8 @@ class _ChatScreenState extends State<ChatScreen> {
                               margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
                               constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
                               decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(8),
+                                color: Colors.grey[300],
+                                borderRadius: BorderRadius.circular(15),
                               ),
                               child: Text(
                                 _typingMessage,
@@ -416,16 +416,16 @@ class _ChatScreenState extends State<ChatScreen> {
                       mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (!isUser) // API 응답 메시지일 때만 아이콘 표시
+                        if (!isUser)
                           Padding(
                             padding: const EdgeInsets.only(left: 8.0, top: 13.0),
                             child: Image.asset(
-                              'assets/images/icon.png',
+                              'assets/images/chaticon.png',
                               width: 32,
                               height: 32,
                             ),
                           ),
-                        if (!isUser) const SizedBox(width: 8), // API 메시지의 아이콘과 텍스트 사이 간격
+                        if (!isUser) const SizedBox(width: 8),
                         Flexible(
                           child: Container(
                             padding: const EdgeInsets.all(12),
@@ -433,7 +433,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
                             decoration: BoxDecoration(
                               color: isUser ? const Color(0xFF664FF6) : Colors.white,
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(15),
                             ),
                             child: Text(
                               message['text'] ?? '',
@@ -451,22 +451,34 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
             ),
             Container(
-              color: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border(
+                  top: BorderSide(
+                    color: Colors.grey[300] ?? Colors.grey, // null 안전 처리
+                    width: 1.0,
+                  ),
+                ),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
               child: SafeArea(
                 child: Row(
                   children: [
+                    IconButton(
+                      icon: const Icon(Icons.refresh), // 새로고침 아이콘
+                      onPressed: _resetChat, // 새로고침 기능 호출
+                    ),
                     Expanded(
                       child: SingleChildScrollView(
                         controller: _textFieldScrollController,
                         scrollDirection: Axis.vertical,
-                        reverse: true, // 스크롤이 아래쪽부터 시작하도록 설정
+                        reverse: true,
                         child: TextFormField(
                           controller: _controller,
                           decoration: const InputDecoration(
                             hintText: '메시지를 입력해주세요.',
                             border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(horizontal: 25.0),
+                            contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
                           ),
                           minLines: 1,
                           maxLines: 8, // 최대 5줄까지 확장 가능
@@ -476,7 +488,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                     IconButton(
                       icon: const Icon(Icons.send),
-                      padding: const EdgeInsets.all(15.0),
+                      padding: const EdgeInsets.all(10.0),
                       constraints: const BoxConstraints(),
                       onPressed: () {
                         if (_controller.text.isNotEmpty) {

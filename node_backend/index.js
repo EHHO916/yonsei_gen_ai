@@ -8,7 +8,8 @@ const userRoutes = require('./routes/userRoutes');
 dotenv.config({ path: './node_backend/.env' });
 
 const app = express();
-const PORT = process.env.NODE_PORT || 5000;
+const PORT = process.env.PORT || 3000;
+const HOST = '0.0.0.0';  // Listen on all network interfaces
 
 // MongoDB 연결
 connectDB();
@@ -19,13 +20,11 @@ app.use(express.json()); // JSON 요청을 처리하기 위한 미들웨어
 app.use(morgan('dev')); // 요청 및 응답 로깅
 app.use(express.urlencoded({ extended: true }));
 
-// Debug middleware to log all incoming requests
+// Add more detailed logging middleware
 app.use((req, res, next) => {
-  console.log('Incoming request:', {
-    method: req.method,
-    path: req.path,
-    body: req.body
-  });
+  console.log(`[${new Date().toISOString()}] Incoming ${req.method} request to ${req.url}`);
+  console.log('Request Headers:', req.headers);
+  console.log('Request Body:', req.body);
   next();
 });
 
@@ -52,6 +51,9 @@ app.use((err, req, res, next) => {
 });
 
 // 서버 시작
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+app.listen(PORT, HOST, () => {
+  console.log(`Server running on http://${HOST}:${PORT}`);
+  console.log('Available on:');
+  console.log(`  • Local:            http://localhost:${PORT}`);
+  console.log(`  • On Your Network:  http://10.0.2.2:${PORT}`);
 });

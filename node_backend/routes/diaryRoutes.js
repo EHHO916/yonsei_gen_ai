@@ -2,13 +2,21 @@ const express = require('express');
 const router = express.Router();
 const DiaryEntry = require('../models/DiaryEntry');
 
+// Test endpoint
+router.get('/test', (req, res) => {
+  res.status(200).json({ message: 'Diary API is working!' });
+});
+
 // 새로운 일기 생성
 router.post('/create', async (req, res) => {
   try {
+    console.log('Received diary entry creation request:', req.body);
     const diaryEntry = new DiaryEntry(req.body);
     const savedEntry = await diaryEntry.save();
+    console.log('Successfully saved diary entry:', savedEntry);
     res.status(201).json(savedEntry);
   } catch (err) {
+    console.error('Error creating diary entry:', err);
     res.status(400).json({ error: err.message });
   }
 });

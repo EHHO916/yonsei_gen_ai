@@ -20,20 +20,13 @@ class CombinedScreen extends StatelessWidget {
       ),
       body: Stack(
         children: [
+          // 배경 이미지를 설정
           Positioned.fill(
             child: Container(
               decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.white,
-                    Colors.white,
-                    Color(0xFFF8E1E7),
-                    Color(0xFFD1C4E9),
-                    Color(0xFFE8EAF6),
-                  ],
-                  stops: [0.0, 0.5, 0.75, 0.9, 1.0],
+                image: DecorationImage(
+                  image: AssetImage('assets/images/background.png'), // 배경 이미지 경로 설정
+                  fit: BoxFit.cover, // 이미지를 화면에 꽉 채우도록 설정
                 ),
               ),
             ),

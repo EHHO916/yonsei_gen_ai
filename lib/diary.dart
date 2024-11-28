@@ -7,13 +7,45 @@ class DiaryHome extends StatefulWidget {
   _DiaryHomeState createState() => _DiaryHomeState();
 }
 
-class _DiaryHomeState extends State<DiaryHome> {
-  DateTime selectedDay = DateTime.now(); // 선택된 날짜
-  DateTime focusedDay = DateTime.now(); // 화면에 보이는 달력 기준 날짜
-  CalendarFormat calendarFormat = CalendarFormat.week; // 기본은 주간 보기
+class LinePainter extends CustomPainter {
+  final double lineHeight;
 
-  // 날짜별 이모지 저장
+  LinePainter({required this.lineHeight});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.grey[300]! // 줄 색상
+      ..strokeWidth = 1.0; // 줄 두께
+
+    for (double y = 0; y < size.height; y += lineHeight) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _DiaryHomeState extends State<DiaryHome> {
+  DateTime selectedDay = DateTime.now();
+  DateTime focusedDay = DateTime.now();
+  CalendarFormat calendarFormat = CalendarFormat.week;
+
   final Map<DateTime, String> emojiByDate = {};
+  final TextEditingController _textEditingController = TextEditingController();
+
+  static const double lineHeight = 24.0; // 한 줄의 높이
+  static const int visibleLines = 5; // 보이는 줄 수
+  final double containerHeight = lineHeight * visibleLines; // 컨테이너 높이
+
+  final List<Map<String, dynamic>> toDoList = [
+    {"title": "산책하기", "done": false},
+    {"title": "책 읽기", "done": false},
+    {"title": "장 보기", "done": false},
+    {"title": "운동하기", "done": false},
+    {"title": "일기 쓰기", "done": false},
+  ];
 
   final Map<String, String> emotionEmojis = {
     'Angry': '😡',
@@ -24,6 +56,14 @@ class _DiaryHomeState extends State<DiaryHome> {
     'Inspired': '✨',
     'Happy': '😊',
   };
+
+  final ScrollController _contentScrollController = ScrollController(); // 스크롤 컨트롤러 추가
+
+  @override
+  void dispose() {
+    _contentScrollController.dispose(); // 메모리 누수를 방지하기 위해 dispose
+    super.dispose();
+  }
 
   void toggleCalendarFormat() {
     setState(() {
@@ -43,7 +83,11 @@ class _DiaryHomeState extends State<DiaryHome> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
         ),
-        child: Padding(
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(15),
+          ),
           padding: const EdgeInsets.all(16.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -67,7 +111,7 @@ class _DiaryHomeState extends State<DiaryHome> {
                       setState(() {
                         emojiByDate[selectedDay] = entry.value; // 선택한 이모지를 저장
                       });
-                      Navigator.pop(context); // 다이얼로그 닫기
+                      Navigator.pop(context);
                     },
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -89,18 +133,18 @@ class _DiaryHomeState extends State<DiaryHome> {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
-                  Navigator.pop(context); // 다이얼로그 닫기
+                  Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 30, vertical: 12),
+                  backgroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
                   ),
                 ),
                 child: const Text(
-                  "Cancel",
-                  style: TextStyle(color: Colors.white),
+                  "닫기",
+                  style: TextStyle(color: Colors.black),
                 ),
               ),
             ],
@@ -118,127 +162,167 @@ class _DiaryHomeState extends State<DiaryHome> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pop(context); // 뒤로 가기 버튼
+            Navigator.pop(context);
           },
         ),
         backgroundColor: Colors.white,
       ),
       backgroundColor: const Color(0xFFF5F5F5),
-      body: GestureDetector(
-        onLongPress: toggleCalendarFormat, // 길게 누르면 포맷 전환
-        child: Column(
-          children: [
-            const SizedBox(height: 20),
-            // 캘린더 부분
-            Container(
-              color: Colors.transparent, // 터치 가능한 배경
+      body: CustomScrollView(
+        controller: _contentScrollController,
+        slivers: [
+          // 캘린더 부분
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 20.0),
               child: TableCalendar(
                 firstDay: DateTime(2000),
                 lastDay: DateTime(2100),
-                focusedDay: focusedDay, // 오늘 날짜가 속한 주를 기본으로 보여줌
+                focusedDay: focusedDay,
                 selectedDayPredicate: (day) => isSameDay(selectedDay, day),
                 onDaySelected: (newSelectedDay, newFocusedDay) {
                   setState(() {
                     selectedDay = newSelectedDay;
-                    focusedDay = newFocusedDay; // 포커스를 새로운 날짜로 업데이트
+                    focusedDay = newFocusedDay;
                   });
-                  showEmojiSelectionDialog(); // 날짜 클릭 시 이모지 선택 다이얼로그 호출
+                  showEmojiSelectionDialog();
                 },
-                calendarFormat: calendarFormat, // 포맷 동적 변경
+                calendarFormat: calendarFormat,
+                onFormatChanged: (format) {
+                  setState(() {
+                    calendarFormat = format;
+                  });
+                },
                 availableCalendarFormats: const {
                   CalendarFormat.week: 'Week',
                   CalendarFormat.month: 'Month',
                 },
                 calendarStyle: const CalendarStyle(
-                  selectedDecoration: BoxDecoration(
-                    color: Colors.blue,
-                    shape: BoxShape.circle,
-                  ),
-                  todayDecoration: BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
-                  ),
+                  cellMargin: EdgeInsets.symmetric(vertical: 8),
                 ),
                 headerStyle: const HeaderStyle(
                   titleCentered: true,
-                  formatButtonVisible: false,
-                ),
-                // 날짜에 따라 커스텀 표시
-                calendarBuilders: CalendarBuilders(
-                  defaultBuilder: (context, day, focusedDay) {
-                    if (emojiByDate.containsKey(day)) {
-                      return Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              emojiByDate[day]!,
-                              style: const TextStyle(fontSize: 32),
-                            ),
-                            Text(
-                              "${day.day}",
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-                    return null; // 기본 스타일로 표시
-                  },
-                  selectedBuilder: (context, day, focusedDay) {
-                    return Container(
-                      width: 40,
-                      height: 40,
-                      decoration: const BoxDecoration(
-                        color: Colors.blue,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: Text(
-                          "${day.day}",
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                  todayBuilder: (context, day, focusedDay) {
-                    return Container(
-                      width: 40,
-                      height: 40,
-                      decoration: const BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: Text(
-                          "${day.day}",
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    );
-                  },
+                  formatButtonVisible: true,
                 ),
               ),
             ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: Container(
-                color: Colors.white,
-                child: Center(
-                  child: Text(
-                    "Content Area", // 이곳에 다른 콘텐츠 추가 가능
-                    style: const TextStyle(fontSize: 18, color: Colors.grey),
+          ),
+          const SliverToBoxAdapter(
+            child: SizedBox(height: 20),
+          ),
+          // 일기 및 To-Do List 부분
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "오늘의 일기",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 8),
+                  Container(
+                    height: containerHeight,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey[300]!),
+                    ),
+                    child: Stack(
+                      children: [
+                        CustomPaint(
+                          size: Size(double.infinity, containerHeight),
+                          painter: LinePainter(lineHeight: lineHeight),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: TextField(
+                            controller: _textEditingController,
+                            maxLines: null,
+                            keyboardType: TextInputType.multiline,
+                            decoration: const InputDecoration(
+                              hintText: '오늘 있었던 일을 기록해주세요',
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              height: 1.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    "To-Do List",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: toDoList.length,
+                    itemBuilder: (context, index) {
+                      return CheckboxListTile(
+                        title: Text(
+                          toDoList[index]['title'],
+                          style: TextStyle(
+                            decoration: toDoList[index]['done']
+                                ? TextDecoration.lineThrough
+                                : TextDecoration.none,
+                            color: toDoList[index]['done'] ? Colors.grey : Colors.black,
+                          ),
+                        ),
+                        value: toDoList[index]['done'],
+                        onChanged: (value) {
+                          setState(() {
+                            toDoList[index]['done'] = value!;
+                          });
+                        },
+                        controlAffinity: ListTileControlAffinity.leading,
+                      );
+                    },
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
+        ],
+      ),
+      bottomNavigationBar: BottomAppBar(
+        color: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 5.0),
+          child: ElevatedButton(
+            onPressed: () {
+              // 저장 기능 추가 가능
+              print("일기 및 To-Do List 저장");
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6A4DFF),
+              padding: const EdgeInsets.symmetric(vertical: 5),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+            ),
+            child: const Text(
+              "저장하기",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
         ),
       ),
     );
